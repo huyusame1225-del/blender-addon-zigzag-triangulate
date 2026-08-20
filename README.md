@@ -4,6 +4,15 @@ Blender extension that triangulates selected connected quad faces with alternati
 
 選択した隣接四角面を、交互の対角線でジグザグに三角形化するBlenderエクステンションです。
 
+## ⬇️ Blender 5.2対応版をダウンロード
+
+[![Zigzag Triangulate v1.0.1をダウンロード](https://img.shields.io/badge/Blender%205.2対応版をダウンロード-v1.0.1-E87D0D?style=for-the-badge&logo=blender&logoColor=white)](https://github.com/huyusame1225-del/blender-addon-zigzag-triangulate/releases/download/v1.0.1/zigzag_triangulate-1.0.1-blender-5.2.zip)
+
+### [ボタンが表示されない場合はこちらをクリック](https://github.com/huyusame1225-del/blender-addon-zigzag-triangulate/releases/download/v1.0.1/zigzag_triangulate-1.0.1-blender-5.2.zip)
+
+> **初めて使う方へ:** 「Source code」ではなく、上のオレンジ色のボタンから
+> `zigzag_triangulate-1.0.1-blender-5.2.zip` をダウンロードしてください。
+
 ## Features / 機能
 
 - Alternates the diagonal direction across connected selected quads
@@ -37,5 +46,4 @@ You can also search for **Zigzag Triangulate** with F3. Use **Reverse Pattern** 
 ## License
 
 GPL-3.0-or-later
-
 
