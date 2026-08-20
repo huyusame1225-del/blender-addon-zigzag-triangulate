@@ -1,7 +1,7 @@
 schema_version = "1.0.0"
 
 id = "zigzag_triangulate"
-version = "1.0.1"
+version = "1.0.2"
 name = "Zigzag Triangulate"
 tagline = "Triangulate selected quad regions with alternating diagonals"
 maintainer = "Codex"
