@@ -7,7 +7,7 @@ from bpy.props import BoolProperty
 
 
 def _quad_neighbors(faces):
-    """Return selected-quad adjacency without relying on face indices."""
+    """Return selected-quad adjacency together with each shared edge."""
     face_set = set(faces)
     neighbors = {face: [] for face in faces}
 
@@ -15,36 +15,51 @@ def _quad_neighbors(faces):
         for edge in face.edges:
             for linked_face in edge.link_faces:
                 if linked_face is not face and linked_face in face_set:
-                    neighbors[face].append(linked_face)
+                    neighbors[face].append((linked_face, edge))
 
     return neighbors
 
 
-def _alternating_groups(faces):
-    """Bipartition every connected selection island using breadth-first order."""
+def _diagonal_choices(faces, reverse=False):
+    """Propagate diagonals through shared vertices for a continuous zigzag."""
     neighbors = _quad_neighbors(faces)
-    side = {}
+    choice = {}
 
     # Stable seeds make repeated execution predictable.
     for seed in sorted(faces, key=lambda face: face.index):
-        if seed in side:
+        if seed in choice:
             continue
 
-        side[seed] = 0
+        choice[seed] = 1 if reverse else 0
         queue = [seed]
         cursor = 0
 
         while cursor < len(queue):
             face = queue[cursor]
             cursor += 1
-            next_side = 1 - side[face]
+            face_choice = choice[face]
+            diagonal = {
+                face.verts[face_choice],
+                face.verts[face_choice + 2],
+            }
 
-            for neighbor in sorted(neighbors[face], key=lambda item: item.index):
-                if neighbor not in side:
-                    side[neighbor] = next_side
+            for neighbor, shared_edge in sorted(
+                neighbors[face], key=lambda item: item[0].index
+            ):
+                # A quad diagonal touches exactly one end of each boundary edge.
+                # Continue from that same vertex in the neighboring quad. This
+                # is independent of loop rotation and face winding.
+                join_vertex = next(
+                    vertex for vertex in shared_edge.verts if vertex in diagonal
+                )
+                join_index = list(neighbor.verts).index(join_vertex)
+                next_choice = join_index % 2
+
+                if neighbor not in choice:
+                    choice[neighbor] = next_choice
                     queue.append(neighbor)
 
-    return side
+    return choice
 
 
 class MESH_OT_zigzag_triangulate(bpy.types.Operator):
@@ -80,12 +95,12 @@ class MESH_OT_zigzag_triangulate(bpy.types.Operator):
             self.report({"WARNING"}, "Select one or more quad faces")
             return {"CANCELLED"}
 
-        groups = _alternating_groups(quads)
+        choices = _diagonal_choices(quads, self.reverse)
 
         # Triangulate one face at a time because each face needs its own method.
         # The topology grouping above is captured before any faces are replaced.
         for face in sorted(quads, key=lambda item: item.index):
-            use_alternate = bool(groups[face]) ^ self.reverse
+            use_alternate = choices[face] == 1
             result = bmesh.ops.triangulate(
                 bm,
                 faces=[face],
